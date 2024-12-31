@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Welcome to {{ user.username }}'s Subscription Tracker!</h1>
+
+    {% for sub in subscriptions %}
+    <div><p>{{ sub.name }} costs
+        <b>${{ sub.cost }} {{ sub.payment_frequency }}</b> as of {{ sub.active_date }}
+    </p></div>
+    {% endfor %}
+
+    <p><a href="{{ url_for('subscription') }}">Click to add Subscriptions!</a></p>
+{% endblock %}
