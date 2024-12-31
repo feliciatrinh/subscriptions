@@ -6,7 +6,7 @@
 > flask db init
 
 generate migration script
-> flask db migrate -m "media table"
+> flask db migrate -m "tables"
 
 Apply changes to the database
 > flask db upgrade
@@ -40,9 +40,9 @@ all_media = db.session.scalars(query).all() # [<Media Inside Out>, <Media Inside
 all_media = db.session.scalars(query)
 for m in all_media:
     print(m.id, m.title)
- 
+
 # 1 Inside Out
-# 2 Inside Out 2  
+# 2 Inside Out 2
 
 # Get a media record given an id
 m = db.session.get(Media, 1) # <Media Inside Out>
@@ -66,7 +66,7 @@ query = sa.select(Log)
 logs = db.session.scalars(query)
 for log in logs:
     print(log.date, log.media.title, log.media.type) # 2024-12-30 Inside Out film
-    
+
 # More example queries
 # get media in reverse alphabetical order
 query = sa.select(Media).order_by(Media.title.desc())
@@ -88,7 +88,7 @@ Alternatively, run this to start a Python interpreter in the context of the appl
 > flask shell
 
 ## Quickly empty tables
-> flask db downgrade base  
+> flask db downgrade base
 flask db upgrade
 
 ## Run the app

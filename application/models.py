@@ -52,7 +52,7 @@ class Subscription(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String, index=True, unique=True)
     # TODO: include a list of other names that should map to the same subscription e.g. Disney Plus is the same as Disney+
-    cost: so.Mapped[float] = so.mapped_column(sa.Float)
+    cost: so.Mapped[str] = so.mapped_column(sa.String)
     payment_frequency: so.Mapped[PaymentFrequency] = so.mapped_column(
         sa.Enum(
             PaymentFrequency,
@@ -63,6 +63,7 @@ class Subscription(db.Model):
         default=PaymentFrequency.monthly
     )
     active_date: so.Mapped[date] = so.mapped_column(sa.Date, index=True, default=lambda: date.today())
+    inactive_date: so.Mapped[Optional[date]] = so.mapped_column(sa.Date)
 
     def __repr__(self):
         return f'<Subscription(id={self.id}, name={self.name}, cost={self.cost}, payment_frequency={self.payment_frequency})>'
@@ -71,8 +72,11 @@ class Subscription(db.Model):
 class Log(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     date: so.Mapped[date] = so.mapped_column(sa.Date, index=True, default=lambda: date.today())
-    media_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Media.id), index=True)
     subscription_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Subscription.id), index=True)
+    media_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Media.id), index=True)
+    season: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer)
+    episode: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer)
+    notes: so.Mapped[Optional[str]] = so.mapped_column(sa.String)
 
     media: so.Mapped[Media] = so.relationship(back_populates='logs')
 

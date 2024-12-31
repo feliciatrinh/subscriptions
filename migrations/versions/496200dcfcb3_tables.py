@@ -1,8 +1,8 @@
 """tables
 
-Revision ID: d967930a6600
+Revision ID: 496200dcfcb3
 Revises: 
-Create Date: 2024-12-30 20:24:48.823426
+Create Date: 2024-12-31 14:33:41.091466
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd967930a6600'
+revision = '496200dcfcb3'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -30,10 +30,11 @@ def upgrade():
 
     op.create_table('subscription',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=64), nullable=False),
-    sa.Column('cost', sa.Float(precision=2), nullable=False),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('cost', sa.String(), nullable=False),
     sa.Column('payment_frequency', sa.Enum('monthly', 'yearly', name='paymentfrequency', create_constraint=True), nullable=False),
     sa.Column('active_date', sa.Date(), nullable=False),
+    sa.Column('inactive_date', sa.Date(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('subscription', schema=None) as batch_op:
@@ -43,8 +44,11 @@ def upgrade():
     op.create_table('log',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('date', sa.Date(), nullable=False),
-    sa.Column('media_id', sa.Integer(), nullable=False),
     sa.Column('subscription_id', sa.Integer(), nullable=False),
+    sa.Column('media_id', sa.Integer(), nullable=False),
+    sa.Column('season', sa.Integer(), nullable=True),
+    sa.Column('episode', sa.Integer(), nullable=True),
+    sa.Column('notes', sa.String(), nullable=True),
     sa.ForeignKeyConstraint(['media_id'], ['media.id'], ),
     sa.ForeignKeyConstraint(['subscription_id'], ['subscription.id'], ),
     sa.PrimaryKeyConstraint('id')
