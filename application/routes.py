@@ -33,9 +33,9 @@ def subscription():
 def get_media_id(title, type):
     title = title.strip()
     query = sa.select(Media).where(f.lower(Media.title) == title.lower())
-    existing_media = db.session.scalar(query).all()
+    existing_media = db.session.scalars(query).all()
     if existing_media:
-        id = existing_media.id
+        id = existing_media[0].id
     else:
         media = Media(title=title, type=type)
         db.session.add(media)
