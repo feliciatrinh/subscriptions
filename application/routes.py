@@ -1,19 +1,19 @@
-from flask import render_template, flash, redirect, url_for
+from flask import current_app, render_template, flash, redirect, url_for
 import sqlalchemy as sa
 from sqlalchemy import func as f
-from application import app, db
+from application import db
 from application.forms import LogForm, SubscriptionForm
 from application.models import Log, Media, Subscription
 
-@app.route('/')
-@app.route('/index')
+@current_app.route('/')
+@current_app.route('/index')
 def index():
     user = {'username': 'Lisha'}
     subs = db.session.scalars(sa.select(Subscription)).all()
     return render_template('index.html', title='Home', user=user, subscriptions=subs)
 
 
-@app.route('/subscription', methods=['GET', 'POST'])
+@current_app.route('/subscription', methods=['GET', 'POST'])
 def subscription():
     form = SubscriptionForm()
     if form.validate_on_submit():
@@ -44,7 +44,7 @@ def get_media_id(title, type):
     return id
 
 
-@app.route('/log', methods=['GET', 'POST'])
+@current_app.route('/log', methods=['GET', 'POST'])
 def log():
     form = LogForm()
     if form.validate_on_submit():

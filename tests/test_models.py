@@ -8,8 +8,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 import pytest
 import sqlalchemy as sa
 from datetime import date, timedelta
-from application import app as _app, db as _db
+from application import db as _db, create_app
 from application.models import Log, Media, MediaType, PaymentFrequency, Subscription
+from config import TestConfig
 
 current_date = date.today()
 yesterday = current_date - timedelta(days=1)
@@ -21,10 +22,7 @@ INSIDE_OUT_2 = "Inside Out 2"
 
 @pytest.fixture(scope="session")
 def app():
-    db_uri = 'sqlite:///' + os.path.join(basedir, 'test.db')
-    _app.config['TESTING'] = True
-    _app.config['WTF_CSRF_ENABLED'] = False
-    _app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+    _app = create_app(config=TestConfig)
     yield _app
 
 
