@@ -48,6 +48,7 @@ class Media(db.Model):
         return f'<Media(title={self.title}, type={self.type})>'
 
 
+# TODO: add a function that returns id given name
 class Subscription(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String, index=True, unique=True)

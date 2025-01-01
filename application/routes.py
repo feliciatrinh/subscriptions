@@ -33,7 +33,7 @@ def subscription():
 def get_media_id(title, media_type):
     title = title.strip()
     query = sa.select(Media).where(f.lower(Media.title) == title.lower())
-    existing_media = db.session.scalar(query).all()
+    existing_media = db.session.scalar(query)
     if existing_media:
         media_id = existing_media.id
     else:
