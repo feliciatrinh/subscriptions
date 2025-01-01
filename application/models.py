@@ -75,6 +75,8 @@ class Subscription(db.Model):
     active_date: so.Mapped[date] = so.mapped_column(sa.Date, index=True, default=lambda: date.today())
     inactive_date: so.Mapped[Optional[date]] = so.mapped_column(sa.Date)
 
+    logs: so.WriteOnlyMapped['Log'] = so.relationship(back_populates='subscription')
+
     def __repr__(self):
         return f'<Subscription(id={self.id}, name={self.name}, cost={self.cost}, payment_frequency={self.payment_frequency})>'
 
@@ -94,6 +96,22 @@ class Log(db.Model):
     notes: so.Mapped[Optional[str]] = so.mapped_column(sa.String)
 
     media: so.Mapped[Media] = so.relationship(back_populates='logs')
+    subscription: so.Mapped[Subscription] = so.relationship(back_populates='logs')
 
     def __repr__(self):
         return f'<Log(id={self.id}, date={self.date}, subscription_id={self.subscription_id}, media_id={self.media_id})>'
+
+    @classmethod
+    def get_by_sub_id(cls, sub_id):
+        query = sa.select(Log).filter(Log.subscription_id == sub_id)
+        return db.session.scalars(query).all()
+
+    @classmethod
+    def get_by_media_id(cls, media_id):
+        query = sa.select(Log).filter(Log.media_id == media_id)
+        return db.session.scalars(query).all()
+
+    @classmethod
+    def get_by_sub_and_media(cls, sub_id, media_id):
+        query = sa.select(Log).filter(Log.subscription_id == sub_id, Log.media_id == media_id)
+        return db.session.scalars(query).all()

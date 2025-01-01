@@ -34,3 +34,4 @@ REST API calls are used to
 
 ## Resources
 - https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
+- https://wtforms.readthedocs.io/en/3.2.x/fields/

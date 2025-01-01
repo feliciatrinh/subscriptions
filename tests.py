@@ -7,13 +7,15 @@ from datetime import date, timedelta
 from application import app, db
 from application.models import Log, Media, MediaType, PaymentFrequency, Subscription
 
-current_date = date.today()
-yesterday = current_date - timedelta(days=1)
-tomorrow = current_date + timedelta(days=1)
 NETFLIX = "Netflix"
 PEACOCK = "Peacock"
 INSIDE_OUT = "Inside Out"
 INSIDE_OUT_2 = "Inside Out 2"
+
+current_date = date.today()
+yesterday = current_date - timedelta(days=1)
+tomorrow = current_date + timedelta(days=1)
+
 
 class ModelCase(unittest.TestCase):
     def setUp(self):
@@ -108,8 +110,8 @@ class LogModelCase(ModelCase):
         media = Media(title=INSIDE_OUT, type=MediaType.film)
         db.session.add_all((sub, media))
 
-        sub_id = db.session.scalar(sa.select(Subscription).where(Subscription.name == PEACOCK)).id
-        media_id = db.session.scalar(sa.select(Media).where(Media.title == INSIDE_OUT)).id
+        sub_id = Subscription.get_by_name(PEACOCK).id
+        media_id = Media.get_by_title_type(INSIDE_OUT, MediaType.film).id
 
         log = Log(subscription_id=sub_id, media_id=media_id)
         db.session.add(log)
@@ -120,10 +122,11 @@ class LogModelCase(ModelCase):
         self.assertIsNone(result.episode)
         self.assertIsNone(result.notes)
         self.assertEqual(result.media.id, media_id)
+        self.assertEqual(result.subscription.id, sub_id)
 
         media2 = Media(title=INSIDE_OUT_2, type=MediaType.film)
         db.session.add(media2)
-        media2_id = db.session.scalar(sa.select(Media).where(Media.title == INSIDE_OUT_2)).id
+        media2_id = Media.get_by_title_type(INSIDE_OUT_2, MediaType.film).id
 
         log2 = Log(subscription_id=sub_id, media_id=media2_id, date=tomorrow, season=1, episode=1, notes="Amazing!")
         db.session.add(log2)
@@ -133,6 +136,8 @@ class LogModelCase(ModelCase):
         self.assertEqual(result2.season, 1)
         self.assertEqual(result2.episode, 1)
         self.assertEqual(result2.notes, "Amazing!")
+        self.assertEqual(result2.media.id, media2_id)
+        self.assertEqual(result2.subscription.id, sub_id)
 
         self.assertEqual(len(Log.query.all()), 2)
 
@@ -140,7 +145,7 @@ class LogModelCase(ModelCase):
         # subscription_id does not exist
         media = Media(title=INSIDE_OUT, type=MediaType.film)
         db.session.add(media)
-        media_id = db.session.scalar(sa.select(Media).where(Media.title == INSIDE_OUT)).id
+        media_id = Media.get_by_title_type(INSIDE_OUT, MediaType.film).id
         log = Log(subscription_id=999, media_id=media_id)
         with self.assertRaises(sa.exc.IntegrityError):
             db.session.add(log)
@@ -150,12 +155,68 @@ class LogModelCase(ModelCase):
         # media_id does not exist
         sub = Subscription(name=PEACOCK, cost="0.00")
         db.session.add(sub)
-        sub_id = db.session.scalar(sa.select(Subscription).where(Subscription.name == PEACOCK)).id
+        sub_id = Subscription.get_by_name(PEACOCK).id
         log = Log(subscription_id=sub_id, media_id=999)
         with self.assertRaises(sa.exc.IntegrityError):
             db.session.add(log)
             db.session.flush()
 
+    def test_get_by_sub_id(self):
+        sub1 = Subscription(name=PEACOCK, cost="0.00")
+        sub2 = Subscription(name=NETFLIX, cost="0.00")
+        media = Media(title=INSIDE_OUT, type=MediaType.film)
+        db.session.add_all((sub1, sub2, media))
+
+        sub_id = Subscription.get_by_name(PEACOCK).id
+        sub_id_ignored = Subscription.get_by_name(NETFLIX).id
+        media_id = Media.get_by_title_type(INSIDE_OUT, MediaType.film).id
+        log1 = Log(subscription_id=sub_id, media_id=media_id, date=yesterday)
+        log2 = Log(subscription_id=sub_id, media_id=media_id)
+        log3 = Log(subscription_id=sub_id_ignored, media_id=media_id)
+        db.session.add_all((log1, log2, log3))
+        result = Log.get_by_sub_id(sub_id)
+        self.assertEqual(len(result), 2)
+        self.assertSetEqual({res.subscription_id for res in result}, {sub_id})
+
+        no_results = Log.get_by_sub_id(999)
+        self.assertListEqual(no_results, [])
+
+    def test_get_by_media_id(self):
+        sub = Subscription(name=PEACOCK, cost="0.00")
+        media1 = Media(title=INSIDE_OUT, type=MediaType.film)
+        media2 = Media(title=INSIDE_OUT_2, type=MediaType.film)
+        db.session.add_all((sub, media1, media2))
+
+        sub_id = Subscription.get_by_name(PEACOCK).id
+        media_id = Media.get_by_title_type(INSIDE_OUT, MediaType.film).id
+        media_id_ignored = Media.get_by_title_type(INSIDE_OUT_2, MediaType.film).id
+        log1 = Log(subscription_id=sub_id, media_id=media_id, date=yesterday)
+        log2 = Log(subscription_id=sub_id, media_id=media_id)
+        log3 = Log(subscription_id=sub_id, media_id=media_id_ignored)
+        db.session.add_all((log1, log2, log3))
+        result = Log.get_by_media_id(media_id)
+        self.assertEqual(len(result), 2)
+        self.assertSetEqual({res.media_id for res in result}, {media_id})
+
+        no_results = Log.get_by_media_id(999)
+        self.assertListEqual(no_results, [])
+
+    def test_get_by_sub_media(self):
+        sub = Subscription(name=PEACOCK, cost="0.00")
+        media1 = Media(title=INSIDE_OUT, type=MediaType.film)
+        media2 = Media(title=INSIDE_OUT_2, type=MediaType.film)
+        db.session.add_all((sub, media1, media2))
+
+        sub_id = Subscription.get_by_name(PEACOCK).id
+        media_id = Media.get_by_title_type(INSIDE_OUT, MediaType.film).id
+        media_id_ignored = Media.get_by_title_type(INSIDE_OUT_2, MediaType.film).id
+        log1 = Log(subscription_id=sub_id, media_id=media_id)
+        log2 = Log(subscription_id=sub_id, media_id=media_id_ignored)
+        db.session.add_all((log1, log2))
+        result = Log.get_by_sub_and_media(sub_id, media_id)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].subscription_id, sub_id)
+        self.assertEqual(result[0].media_id, media_id)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
