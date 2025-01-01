@@ -3,6 +3,7 @@ from datetime import date
 from typing import Optional
 import sqlalchemy as sa
 import sqlalchemy.orm as so
+from sqlalchemy import func as f
 from application import db
 
 
@@ -30,7 +31,7 @@ class PaymentFrequency(FormEnum):
 
 class Media(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    title: so.Mapped[str] = so.mapped_column(sa.String, index=True, unique=True)
+    title: so.Mapped[str] = so.mapped_column(sa.String, index=True)
     type: so.Mapped[MediaType] = so.mapped_column(sa.Enum(
         MediaType,
         name="mediatype",
@@ -41,14 +42,22 @@ class Media(db.Model):
 
     logs: so.WriteOnlyMapped['Log'] = so.relationship(back_populates='media')
 
+    __table_args__ = (
+        db.UniqueConstraint('title', 'type', name='_media_title_type_uc'),
+    )
+
     def __str__(self):
         return f'{self.title} is a {self.type} about {self.description}'
 
     def __repr__(self):
         return f'<Media(title={self.title}, type={self.type})>'
 
+    @classmethod
+    def get_by_title_type(cls, title, type):
+            query = sa.select(Media).where(f.lower(Media.title) == title.lower(), Media.type == type)
+            return db.session.scalar(query)
 
-# TODO: add a function that returns id given name
+
 class Subscription(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String, index=True, unique=True)

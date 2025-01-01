@@ -1,6 +1,5 @@
 from flask import render_template, flash, redirect, url_for
 import sqlalchemy as sa
-from sqlalchemy import func as f
 from application import app, db
 from application.forms import LogForm, SubscriptionForm
 from application.models import Log, Media, Subscription
@@ -30,10 +29,9 @@ def subscription():
     return render_template('subscriptionform.html', title='Subscription', form=form)
 
 
-def get_media_id(title, media_type):
+def get_or_create_media_id(title, media_type):
     title = title.strip()
-    query = sa.select(Media).where(f.lower(Media.title) == title.lower())
-    existing_media = db.session.scalar(query)
+    existing_media = Media.get_by_title_type(title, media_type)
     if existing_media:
         media_id = existing_media.id
     else:
@@ -48,7 +46,7 @@ def get_media_id(title, media_type):
 def log():
     form = LogForm()
     if form.validate_on_submit():
-        media_id = get_media_id(form.media_title.data, form.media_type.data)
+        media_id = get_or_create_media_id(form.media_title.data, form.media_type.data)
         to_log = Log(
             date=form.date.data,
             subscription_id=form.subscription.data,

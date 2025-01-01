@@ -74,6 +74,24 @@ class MediaModelCase(ModelCase):
             db.session.add(bad_media_type)
             db.session.flush()
 
+    def test_get_by_title_type(self):
+        media = Media(title=INSIDE_OUT_2, type=MediaType.film)
+        db.session.add(media)
+        result = Media.get_by_title_type(INSIDE_OUT_2, MediaType.film)
+        self.assertEqual(result.title, INSIDE_OUT_2)
+        self.assertEqual(result.type, MediaType.film)
+
+    def test_media_unique_constraint(self):
+        media1 = Media(title=INSIDE_OUT, type=MediaType.film)
+        media2 = Media(title=INSIDE_OUT, type=MediaType.tv)
+        db.session.add_all((media1, media2))
+        self.assertEqual(len(Media.query.all()), 2)
+
+        duplicate = Media(title=INSIDE_OUT, type=MediaType.film, description="emotions")
+        with self.assertRaises(sa.exc.IntegrityError):
+            db.session.add(duplicate)
+            db.session.flush()
+
 
 class LogModelCase(ModelCase):
     def test_log(self):
@@ -107,7 +125,7 @@ class LogModelCase(ModelCase):
         self.assertEqual(result2.episode, 1)
         self.assertEqual(result2.notes, "Amazing!")
 
-        assert len(Log.query.all()) == 2
+        self.assertEqual(len(Log.query.all()), 2)
 
     def test_log_missing_sub(self):
         # subscription_id does not exist
