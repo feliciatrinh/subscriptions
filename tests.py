@@ -58,6 +58,12 @@ class SubscriptionModelCase(ModelCase):
             db.session.add(bad_payment)
             db.session.flush()
 
+    def test_get_by_name(self):
+        sub = Subscription(name=NETFLIX, cost="22.99")
+        db.session.add(sub)
+        result = Subscription.get_by_name(NETFLIX.upper())
+        self.assertEqual(result.name, NETFLIX)
+
 
 class MediaModelCase(ModelCase):
     def test_media(self):
@@ -77,9 +83,12 @@ class MediaModelCase(ModelCase):
     def test_get_by_title_type(self):
         media = Media(title=INSIDE_OUT_2, type=MediaType.film)
         db.session.add(media)
-        result = Media.get_by_title_type(INSIDE_OUT_2, MediaType.film)
+        result = Media.get_by_title_type(INSIDE_OUT_2.upper(), MediaType.film)
         self.assertEqual(result.title, INSIDE_OUT_2)
         self.assertEqual(result.type, MediaType.film)
+
+        result2 = Media.get_by_title_type(INSIDE_OUT_2.upper(), MediaType.tv)
+        self.assertIsNone(result2)
 
     def test_media_unique_constraint(self):
         media1 = Media(title=INSIDE_OUT, type=MediaType.film)

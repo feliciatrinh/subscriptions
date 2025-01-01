@@ -78,6 +78,11 @@ class Subscription(db.Model):
     def __repr__(self):
         return f'<Subscription(id={self.id}, name={self.name}, cost={self.cost}, payment_frequency={self.payment_frequency})>'
 
+    @classmethod
+    def get_by_name(cls, name):
+        query = sa.select(Subscription).filter(f.lower(Subscription.name) == name.lower())
+        return db.session.scalar(query)
+
 
 class Log(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
