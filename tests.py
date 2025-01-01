@@ -9,6 +9,7 @@ from application.models import Log, Media, MediaType, PaymentFrequency, Subscrip
 
 NETFLIX = "Netflix"
 PEACOCK = "Peacock"
+DISNEY = "Disney+"
 INSIDE_OUT = "Inside Out"
 INSIDE_OUT_2 = "Inside Out 2"
 
@@ -65,6 +66,27 @@ class SubscriptionModelCase(ModelCase):
         db.session.add(sub)
         result = Subscription.get_by_name(NETFLIX.upper())
         self.assertEqual(result.name, NETFLIX)
+
+    def test_get(self):
+        sub1 = Subscription(name=NETFLIX, cost="22.99")
+        sub2 = Subscription(name=PEACOCK, cost="0.00", payment_frequency=PaymentFrequency.yearly)
+        sub3 = Subscription(name=DISNEY, cost="160.00", inactive_date=yesterday)
+        db.session.add_all((sub1, sub2, sub3))
+
+        # order_by
+        ordered_results = Subscription.get(orderby=Subscription.cost_to_float.desc())
+        ordered_results = [res.name for res in ordered_results]
+        self.assertListEqual(ordered_results, [DISNEY, NETFLIX, PEACOCK])
+
+        # filter
+        filtered_results = Subscription.get(filterby=Subscription.inactive_date.is_(None))
+        filtered_results = [res.name for res in filtered_results]
+        self.assertCountEqual(filtered_results, [NETFLIX, PEACOCK])
+
+        # order by and filter
+        results = Subscription.get(orderby=Subscription.name, filterby=Subscription.cost_to_float > 0)
+        results = [res.name for res in results]
+        self.assertListEqual(results, [DISNEY, NETFLIX])
 
 
 class MediaModelCase(ModelCase):

@@ -3,7 +3,9 @@ from datetime import date
 from typing import Optional
 import sqlalchemy as sa
 import sqlalchemy.orm as so
-from sqlalchemy import func as f
+from sqlalchemy import func as f, cast, Float
+from sqlalchemy.ext.hybrid import hybrid_property
+
 from application import db
 
 
@@ -80,10 +82,23 @@ class Subscription(db.Model):
     def __repr__(self):
         return f'<Subscription(id={self.id}, name={self.name}, cost={self.cost}, payment_frequency={self.payment_frequency})>'
 
+    @hybrid_property
+    def cost_to_float(self):
+        return cast(self.cost, Float)
+
     @classmethod
     def get_by_name(cls, name):
         query = sa.select(Subscription).filter(f.lower(Subscription.name) == name.lower())
         return db.session.scalar(query)
+
+    @classmethod
+    def get(cls, filterby=None, orderby=None):
+        query = sa.select(Subscription)
+        if filterby is not None:
+            query = query.filter(filterby)
+        if orderby is not None:
+            query = query.order_by(orderby)
+        return db.session.scalars(query).all()
 
 
 class Log(db.Model):
