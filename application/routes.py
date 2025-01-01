@@ -30,18 +30,18 @@ def subscription():
     return render_template('subscriptionform.html', title='Subscription', form=form)
 
 
-def get_media_id(title, type):
+def get_media_id(title, media_type):
     title = title.strip()
     query = sa.select(Media).where(f.lower(Media.title) == title.lower())
-    existing_media = db.session.scalars(query).all()
+    existing_media = db.session.scalar(query).all()
     if existing_media:
-        id = existing_media[0].id
+        media_id = existing_media.id
     else:
-        media = Media(title=title, type=type)
+        media = Media(title=title, type=media_type)
         db.session.add(media)
         db.session.commit()
-        id = media.id
-    return id
+        media_id = media.id
+    return media_id
 
 
 @app.route('/log', methods=['GET', 'POST'])
@@ -49,7 +49,7 @@ def log():
     form = LogForm()
     if form.validate_on_submit():
         media_id = get_media_id(form.media_title.data, form.media_type.data)
-        log = Log(
+        to_log = Log(
             date=form.date.data,
             subscription_id=form.subscription.data,
             media_id=media_id,
@@ -57,7 +57,7 @@ def log():
             episode=form.episode_number.data,
             notes=form.notes.data
         )
-        db.session.add(log)
+        db.session.add(to_log)
         db.session.commit()
         flash('Log was submitted')
         return redirect(url_for('index'))
