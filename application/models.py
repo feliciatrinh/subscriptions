@@ -30,14 +30,14 @@ class PaymentFrequency(FormEnum):
 
 class Media(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    title: so.Mapped[str] = so.mapped_column(sa.String(256), index=True, unique=True)
+    title: so.Mapped[str] = so.mapped_column(sa.String, index=True, unique=True)
     type: so.Mapped[MediaType] = so.mapped_column(sa.Enum(
         MediaType,
         name="mediatype",
         create_constraint=True,
         validate_strings=True
     ))
-    description: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
+    description: so.Mapped[Optional[str]] = so.mapped_column(sa.String)
 
     logs: so.WriteOnlyMapped['Log'] = so.relationship(back_populates='media')
 
@@ -81,4 +81,4 @@ class Log(db.Model):
     media: so.Mapped[Media] = so.relationship(back_populates='logs')
 
     def __repr__(self):
-        return f'<Log(id={self.id}, date={self.date}, media_id={self.media_id})>'
+        return f'<Log(id={self.id}, date={self.date}, subscription_id={self.subscription_id}, media_id={self.media_id})>'
