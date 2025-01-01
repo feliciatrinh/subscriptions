@@ -9,6 +9,8 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from application import db
 
 
+MONTHS_IN_YEAR = 12
+
 class FormEnum(enum.Enum):
     @classmethod
     def choices(cls):
@@ -85,6 +87,28 @@ class Subscription(db.Model):
     @hybrid_property
     def cost_to_float(self):
         return cast(self.cost, Float)
+
+    @hybrid_property
+    def monthly_cost(self):
+        if self.payment_frequency == PaymentFrequency.monthly:
+            return self.cost_to_float
+        return self.cost_to_float / MONTHS_IN_YEAR
+
+    @monthly_cost.expression
+    def monthly_cost(cls):
+        return sa.case((cls.payment_frequency == PaymentFrequency.monthly, cls.cost_to_float),
+                       else_=(cls.cost_to_float / MONTHS_IN_YEAR)).label('monthly_cost')
+
+    @hybrid_property
+    def yearly_cost(self):
+        if self.payment_frequency == PaymentFrequency.monthly:
+            return self.cost_to_float * MONTHS_IN_YEAR
+        return self.cost_to_float
+
+    @yearly_cost.expression
+    def yearly_cost(cls):
+        return sa.case((cls.payment_frequency == PaymentFrequency.monthly, cls.cost_to_float * MONTHS_IN_YEAR),
+                       else_=cls.cost_to_float).label('yearly_cost')
 
     @classmethod
     def get_by_name(cls, name):

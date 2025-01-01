@@ -8,7 +8,7 @@ from application.models import Log, Media, Subscription
 @app.route('/index')
 def index():
     user = {'username': 'Lisha'}
-    subs = db.session.scalars(sa.select(Subscription)).all()
+    subs = Subscription.get(orderby=Subscription.monthly_cost.desc())
     return render_template('index.html', title='Home', user=user, subscriptions=subs)
 
 
