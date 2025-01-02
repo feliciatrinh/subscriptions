@@ -124,6 +124,20 @@ class Subscription(db.Model):
             query = query.order_by(orderby)
         return db.session.scalars(query).all()
 
+    @classmethod
+    def total_monthly_cost(cls, exclude_inactive=True):
+        query = db.session.query(f.sum(Subscription.monthly_cost))
+        if exclude_inactive:
+            query = query.filter(Subscription.inactive_date.is_(None))
+        return query.scalar()
+
+    @classmethod
+    def total_yearly_cost(cls, exclude_inactive=True):
+        query = db.session.query(f.sum(Subscription.yearly_cost))
+        if exclude_inactive:
+            query = query.filter(Subscription.inactive_date.is_(None))
+        return query.scalar()
+
 
 class Log(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)

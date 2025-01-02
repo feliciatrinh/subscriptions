@@ -3,6 +3,10 @@
 {% block content %}
     <h1>Welcome to {{ user.username }}'s Subscription Tracker!</h1>
 
+    <h2>Active Subscriptions</h2>
+
+    <p><b>Total Monthly Cost: {{ total_monthly_cost }}, Total Yearly Cost: {{ total_yearly_cost }}</b></p>
+
     {% for sub in subscriptions %}
     <div><p>{{ sub.name }} costs
         <b>${{ sub.cost }} {{ sub.payment_frequency }}</b> as of {{ sub.active_date }}

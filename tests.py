@@ -106,6 +106,20 @@ class SubscriptionModelCase(ModelCase):
         results = [res.name for res in results]
         self.assertEqual(results, [NETFLIX, DISNEY])
 
+    def test_total_monthly_cost(self):
+        sub1 = Subscription(name=NETFLIX, cost="22.99", payment_frequency=PaymentFrequency.monthly)
+        sub2 = Subscription(name=DISNEY, cost="12.00", payment_frequency=PaymentFrequency.yearly)
+        sub_ignored = Subscription(name=PEACOCK, cost="120.00", payment_frequency=PaymentFrequency.yearly, inactive_date=tomorrow)
+        db.session.add_all((sub1, sub2, sub_ignored))
+        self.assertEqual(Subscription.total_monthly_cost(), 23.99)
+
+    def test_total_yearly_cost(self):
+        sub1 = Subscription(name=NETFLIX, cost="1.00", payment_frequency=PaymentFrequency.monthly)
+        sub2 = Subscription(name=DISNEY, cost="12.00", payment_frequency=PaymentFrequency.yearly)
+        sub_ignored = Subscription(name=PEACOCK, cost="120.00", payment_frequency=PaymentFrequency.yearly, inactive_date=tomorrow)
+        db.session.add_all((sub1, sub2, sub_ignored))
+        self.assertEqual(Subscription.total_yearly_cost(), 24)
+
 
 class MediaModelCase(ModelCase):
     def test_media(self):

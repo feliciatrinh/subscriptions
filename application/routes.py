@@ -1,5 +1,6 @@
 from flask import render_template, flash, redirect, url_for
 import sqlalchemy as sa
+from sqlalchemy import func as f
 from application import app, db
 from application.forms import LogForm, SubscriptionForm
 from application.models import Log, Media, Subscription
@@ -8,8 +9,17 @@ from application.models import Log, Media, Subscription
 @app.route('/index')
 def index():
     user = {'username': 'Lisha'}
-    subs = Subscription.get(orderby=Subscription.monthly_cost.desc())
-    return render_template('index.html', title='Home', user=user, subscriptions=subs)
+    subs = Subscription.get(orderby=Subscription.monthly_cost.desc(), filterby=Subscription.inactive_date.is_(None))
+    total_monthly_cost = f'${Subscription.total_monthly_cost():.2f}'
+    total_yearly_cost = f'${Subscription.total_yearly_cost():.2f}'
+    content = {
+        "title": "Home",
+        "user": user,
+        "subscriptions": subs,
+        "total_monthly_cost": total_monthly_cost,
+        "total_yearly_cost": total_yearly_cost
+    }
+    return render_template('index.html', **content)
 
 
 @app.route('/subscription', methods=['GET', 'POST'])
