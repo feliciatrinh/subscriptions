@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Subscription</h1>
+<h1>Update Subscription</h1>
 <form action="" method="POST">
     {{ form.hidden_tag() }}
     <p>
-        {{ form.name.label }}<br>
-        {{ form.name(size=32) }}<br>
-        {% for error in form.name.errors %}
+        {{ form.subscription.label }}<br>
+        {{ form.subscription(size=16) }}<br>
+        {% for error in form.subscription.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>
@@ -29,6 +29,13 @@
         {{ form.active_date.label }}<br>
         {{ form.active_date(size=4) }}<br>
         {% for error in form.active_date.errors %}
+        <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+    </p>
+    <p>
+        {{ form.inactive_date.label }}<br>
+        {{ form.inactive_date(size=4) }}<br>
+        {% for error in form.inactive_date.errors %}
         <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
     </p>

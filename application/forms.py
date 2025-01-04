@@ -16,7 +16,7 @@ class SubscriptionForm(FlaskForm):
     cost = DecimalField(label='Cost', validators=[InputRequired()])
     payment_frequency = SelectField(
         label='Payment Frequency',
-        choices=PaymentFrequency.choices(),
+        choices=PaymentFrequency.choices_on_create(),
         coerce=PaymentFrequency.coerce,
         default=PaymentFrequency.monthly
     )
@@ -32,6 +32,27 @@ class SubscriptionForm(FlaskForm):
         ))
         if existing_subscription:
             raise ValidationError('Subscription already exists')
+
+class EditSubscriptionForm(FlaskForm):
+    subscription = SelectField(label='Subscription Service Name', validators=[DataRequired()])
+    cost = DecimalField(label='Cost', validators=[validators.optional()])
+    payment_frequency = SelectField(
+        label='Payment Frequency',
+        choices=PaymentFrequency.choices(),
+        coerce=PaymentFrequency.coerce,
+        default=PaymentFrequency.no_change
+    )
+    active_date = DateField('Active Date', validators=[validators.optional()])
+    inactive_date = DateField('Inactive Date', validators=[validators.optional()])
+    submit = SubmitField('Submit')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.subscription.choices = [(c.id, c.name) for c in Subscription.query.all()]
+
+    def put(self, url, **kwargs):
+        return self.form.send(url, method='PUT', **kwargs)
+
 
 class LogForm(FlaskForm):
     subscription = SelectField(label='Subscription Service Name', validators=[DataRequired()])

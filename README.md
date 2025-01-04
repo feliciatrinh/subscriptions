@@ -31,6 +31,8 @@ REST API calls are used to
 ## Enhancements
 - SQLite doesn't enforce the length of a VARCHAR. If I used a database that does enforce the length, I could remove that extra validation check.
 - Similar idea for float/decimal fields and the precision.
+- Choose a better framework to enable GET/POST/PUT/DELETE properly
+- Less code duplication
 
 ## Resources
 - https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world

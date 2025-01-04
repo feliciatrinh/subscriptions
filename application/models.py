@@ -14,7 +14,7 @@ MONTHS_IN_YEAR = 12
 class FormEnum(enum.Enum):
     @classmethod
     def choices(cls):
-        return [(choice, choice.name) for choice in cls]
+        return [(choice, str(choice)) for choice in cls]
 
     @classmethod
     def coerce(cls, item):
@@ -31,6 +31,11 @@ class MediaType(FormEnum):
 class PaymentFrequency(FormEnum):
     monthly = "monthly"
     yearly = "yearly"
+    no_change = "no change"
+
+    @classmethod
+    def choices_on_create(cls):
+        return [(choice, str(choice)) for choice in cls if choice != PaymentFrequency.no_change]
 
 
 class Media(db.Model):
