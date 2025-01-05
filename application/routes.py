@@ -8,8 +8,8 @@ from application.models import Log, Media, Subscription, PaymentFrequency
 def index():
     user = {'username': 'Lisha'}
     subs = Subscription.get(orderby=Subscription.monthly_cost.desc(), filterby=Subscription.inactive_date.is_(None))
-    total_monthly_cost = f'${Subscription.total_monthly_cost():.2f}'
-    total_yearly_cost = f'${Subscription.total_yearly_cost():.2f}'
+    total_monthly_cost = Subscription.total_monthly_cost()
+    total_yearly_cost = Subscription.total_yearly_cost()
     subs_by_count = Log.most_logged_subs()
     top_ten = Log.most_logged_media()[:10]
     currently_watching = Log.currently_watching()
@@ -17,8 +17,8 @@ def index():
         "title": "Home",
         "user": user,
         "subscriptions": subs,
-        "total_monthly_cost": total_monthly_cost,
-        "total_yearly_cost": total_yearly_cost,
+        "total_monthly_cost": f"${total_monthly_cost:.2f}" if total_monthly_cost is not None else "$0.00",
+        "total_yearly_cost": f"${total_yearly_cost:.2f}" if total_yearly_cost is not None else "$0.00",
         "subs_by_count": subs_by_count,
         "top_ten": top_ten,
         "currently_watching": currently_watching

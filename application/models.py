@@ -85,8 +85,6 @@ class Subscription(db.Model):
     def __repr__(self):
         return f'<Subscription(id={self.id}, name={self.name}, cost={self.cost}, payment_frequency={self.payment_frequency})>'
 
-    # TODO: is there a way to write a custom str method for cost only such that it appears :.2f?
-
     @hybrid_property
     def cost_to_float(self):
         return cast(self.cost, Float)
