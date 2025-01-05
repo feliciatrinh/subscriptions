@@ -49,8 +49,6 @@ class Media(db.Model):
     ))
     description: so.Mapped[Optional[str]] = so.mapped_column(sa.String)
 
-    logs: so.WriteOnlyMapped['Log'] = so.relationship(back_populates='media')
-
     __table_args__ = (
         db.UniqueConstraint('title', 'type', name='_media_title_type_uc'),
     )
@@ -84,10 +82,10 @@ class Subscription(db.Model):
     active_date: so.Mapped[date] = so.mapped_column(sa.Date, index=True, default=lambda: date.today())
     inactive_date: so.Mapped[Optional[date]] = so.mapped_column(sa.Date)
 
-    logs: so.WriteOnlyMapped['Log'] = so.relationship(back_populates='subscription')
-
     def __repr__(self):
         return f'<Subscription(id={self.id}, name={self.name}, cost={self.cost}, payment_frequency={self.payment_frequency})>'
+
+    # TODO: is there a way to write a custom str method for cost only such that it appears :.2f?
 
     @hybrid_property
     def cost_to_float(self):
@@ -153,9 +151,6 @@ class Log(db.Model):
     episode: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer)
     notes: so.Mapped[Optional[str]] = so.mapped_column(sa.String)
 
-    media: so.Mapped[Media] = so.relationship(back_populates='logs')
-    subscription: so.Mapped[Subscription] = so.relationship(back_populates='logs')
-
     def __repr__(self):
         return f'<Log(id={self.id}, date={self.date}, subscription_id={self.subscription_id}, media_id={self.media_id})>'
 
@@ -172,4 +167,28 @@ class Log(db.Model):
     @classmethod
     def get_by_sub_and_media(cls, sub_id, media_id):
         query = sa.select(Log).filter(Log.subscription_id == sub_id, Log.media_id == media_id)
+        return db.session.scalars(query).all()
+
+    @classmethod
+    def most_logged_subs(cls):
+        query = sa.select(Subscription.name, sa.func.count().label("count"))\
+            .join(Log, Log.subscription_id == Subscription.id)\
+            .group_by(Subscription.name)\
+            .order_by(sa.desc("count"))
+        return db.session.execute(query).all()
+
+    @classmethod
+    def most_logged_media(cls):
+        query = sa.select(Media.title, sa.func.count().label("count"))\
+            .join(Log, Log.media_id == Media.id)\
+            .group_by(Media.title)\
+            .order_by(sa.desc("count"))
+        return db.session.execute(query).all()
+
+    @classmethod
+    def currently_watching(cls, limit=10):
+        query = sa.select(Media.title).distinct()\
+            .join(Log, Log.media_id == Media.id)\
+            .order_by(Log.date.desc())\
+            .limit(limit)
         return db.session.scalars(query).all()

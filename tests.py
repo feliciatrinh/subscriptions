@@ -12,6 +12,7 @@ PEACOCK = "Peacock"
 DISNEY = "Disney+"
 INSIDE_OUT = "Inside Out"
 INSIDE_OUT_2 = "Inside Out 2"
+FLEABAG = "Fleabag"
 
 current_date = date.today()
 yesterday = current_date - timedelta(days=1)
@@ -175,8 +176,6 @@ class LogModelCase(ModelCase):
         self.assertIsNone(result.season)
         self.assertIsNone(result.episode)
         self.assertIsNone(result.notes)
-        self.assertEqual(result.media.id, media_id)
-        self.assertEqual(result.subscription.id, sub_id)
 
         media2 = Media(title=INSIDE_OUT_2, type=MediaType.film)
         db.session.add(media2)
@@ -190,8 +189,6 @@ class LogModelCase(ModelCase):
         self.assertEqual(result2.season, 1)
         self.assertEqual(result2.episode, 1)
         self.assertEqual(result2.notes, "Amazing!")
-        self.assertEqual(result2.media.id, media2_id)
-        self.assertEqual(result2.subscription.id, sub_id)
 
         self.assertEqual(len(Log.query.all()), 2)
 
@@ -271,6 +268,63 @@ class LogModelCase(ModelCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].subscription_id, sub_id)
         self.assertEqual(result[0].media_id, media_id)
+
+    def test_most_logged_subs(self):
+        sub1 = Subscription(name=PEACOCK, cost="0.00", active_date=yesterday)
+        sub2 = Subscription(name=DISNEY, cost="100.00")
+        media1 = Media(title=INSIDE_OUT, type=MediaType.film)
+        db.session.add_all((sub1, sub2, media1))
+
+        sub_id1 = Subscription.get_by_name(PEACOCK).id
+        sub_id2 = Subscription.get_by_name(DISNEY).id
+        media_id1 = Media.get_by_title_type(INSIDE_OUT, MediaType.film).id
+
+        log1 = Log(subscription_id=sub_id1, media_id=media_id1, date=yesterday)
+        log2 = Log(subscription_id=sub_id2, media_id=media_id1)
+        log3 = Log(subscription_id=sub_id2, media_id=media_id1, date=tomorrow)
+        db.session.add_all((log1, log2, log3))
+
+        result = Log.most_logged_subs()
+        self.assertEqual(result, [(DISNEY, 2), (PEACOCK, 1)])
+
+    def test_most_logged_media(self):
+        sub = Subscription(name=PEACOCK, cost="0.00", active_date=yesterday)
+        media1 = Media(title=INSIDE_OUT, type=MediaType.film)
+        media2 = Media(title=INSIDE_OUT_2, type=MediaType.film)
+        db.session.add_all((sub, media1, media2))
+
+        sub_id = Subscription.get_by_name(PEACOCK).id
+        media_id1 = Media.get_by_title_type(INSIDE_OUT, MediaType.film).id
+        media_id2 = Media.get_by_title_type(INSIDE_OUT_2, MediaType.film).id
+
+        log1 = Log(subscription_id=sub_id, media_id=media_id1, date=yesterday)
+        log2 = Log(subscription_id=sub_id, media_id=media_id1)
+        log3 = Log(subscription_id=sub_id, media_id=media_id2, date=tomorrow)
+        db.session.add_all((log1, log2, log3))
+
+        result = Log.most_logged_media()
+        self.assertEqual(result, [(INSIDE_OUT, 2), (INSIDE_OUT_2, 1)])
+
+    def test_currently_watching(self):
+        sub = Subscription(name=PEACOCK, cost="0.00", active_date=yesterday)
+        media1 = Media(title=INSIDE_OUT, type=MediaType.film)
+        media2 = Media(title=INSIDE_OUT_2, type=MediaType.film)
+        media3 = Media(title=FLEABAG, type=MediaType.tv)
+        db.session.add_all((sub, media1, media2, media3))
+
+        sub_id = Subscription.get_by_name(PEACOCK).id
+        media_id1 = Media.get_by_title_type(INSIDE_OUT, MediaType.film).id
+        media_id2 = Media.get_by_title_type(INSIDE_OUT_2, MediaType.film).id
+        media_id3 = Media.get_by_title_type(FLEABAG, MediaType.tv).id
+
+        log1 = Log(subscription_id=sub_id, media_id=media_id1, date=yesterday)
+        log2 = Log(subscription_id=sub_id, media_id=media_id2, date=current_date)
+        log3 = Log(subscription_id=sub_id, media_id=media_id3, date=tomorrow)
+        db.session.add_all((log1, log2, log3))
+
+        result = Log.currently_watching(limit=2)
+        self.assertEqual(result, [FLEABAG, INSIDE_OUT_2])
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

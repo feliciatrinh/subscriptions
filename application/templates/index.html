@@ -3,18 +3,39 @@
 {% block content %}
     <h1>Welcome to {{ user.username }}'s Subscription Tracker!</h1>
 
-    <h2>Active Subscriptions</h2>
+    <h2>Subscriptions</h2>
 
-    <p><b>Total Monthly Cost: {{ total_monthly_cost }}, Total Yearly Cost: {{ total_yearly_cost }}</b></p>
+    <p><b>Total Monthly Cost:</b> {{ total_monthly_cost }}</p>
+    <p><b>Total Yearly Cost:</b> {{ total_yearly_cost }}</p>
+
+    <h3>Active Subscriptions</h3>
 
     {% for sub in subscriptions %}
-    <div><p>{{ sub.name }} costs
-        <b>${{ sub.cost }} {{ sub.payment_frequency }}</b> as of {{ sub.active_date }}
-    </p></div>
+    <div><p>{{ sub.name }} costs <b>${{ sub.cost }} {{ sub.payment_frequency }}</b> as of {{ sub.active_date }}</p></div>
+    {% endfor %}
+
+    <h3>Most Frequently Used</h3>
+
+    {% for sub in subs_by_count %}
+    <div><p>{{ sub.name }} was used {{ sub.count }} time(s)</p></div>
     {% endfor %}
 
     <p><a href="{{ url_for('subscription') }}">Click to add a Subscription</a></p>
-    <p><a href="{{ url_for('log') }}">Click to add a Log</a></p>
-
     <p><a href="{{ url_for('subscription_update') }}">Click to update an existing Subscription</a></p>
+
+    <h2>Watchlist</h2>
+
+    <h3>Currently Watching</h3>
+
+    {% for title in currently_watching %}
+    <div><p><i>{{ title }}</i></p></div>
+    {% endfor %}
+
+    <h3>All-Time Top 10</h3>
+
+    {% for media in top_ten %}
+    <div><p><i>{{ media.title }}</i> was watched {{ media.count }} time(s)</p></div>
+    {% endfor %}
+
+    <p><a href="{{ url_for('log') }}">Click to add a Log</a></p>
 {% endblock %}

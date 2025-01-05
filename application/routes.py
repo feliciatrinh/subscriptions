@@ -10,12 +10,18 @@ def index():
     subs = Subscription.get(orderby=Subscription.monthly_cost.desc(), filterby=Subscription.inactive_date.is_(None))
     total_monthly_cost = f'${Subscription.total_monthly_cost():.2f}'
     total_yearly_cost = f'${Subscription.total_yearly_cost():.2f}'
+    subs_by_count = Log.most_logged_subs()
+    top_ten = Log.most_logged_media()[:10]
+    currently_watching = Log.currently_watching()
     content = {
         "title": "Home",
         "user": user,
         "subscriptions": subs,
         "total_monthly_cost": total_monthly_cost,
-        "total_yearly_cost": total_yearly_cost
+        "total_yearly_cost": total_yearly_cost,
+        "subs_by_count": subs_by_count,
+        "top_ten": top_ten,
+        "currently_watching": currently_watching
     }
     return render_template('index.html', **content)
 
@@ -91,3 +97,7 @@ def log():
         flash('Log was submitted')
         return redirect(url_for('index'))
     return render_template('logform.html', title='Log', form=form)
+
+@app.route('/media', methods=['GET'])
+def media():
+    pass
