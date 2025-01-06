@@ -2,7 +2,6 @@
 
 ## Initialize the database
 
-
 > flask db init
 
 generate migration script
